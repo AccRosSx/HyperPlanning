@@ -35,11 +35,11 @@ class Stagiaire : public Personnage
         char groupe;
     
     public:
-        Stagiaire(string n, string p);
+        Stagiaire(string n, string p,string b, char s, string adres,string domicile, string portable);
         ~Stagiaire();
         Stagiaire();
     void afficher();
-    void information(string dobirth, char s, string adres,string domicile, string portable);
+    
     
     
 };
