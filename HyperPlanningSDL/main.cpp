@@ -1,43 +1,50 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <string>
 
 using namespace std;
 
-void drawLoginInterface(SDL_Window *window, SDL_Renderer *loginInterface,SDL_Rect ID, SDL_Rect PW, int colored, SDL_Color bufferColor)
+int newLog(SDL_Window *window)
 {
-    switch(colored)
-    {
-    case 0:
-        SDL_SetRenderDrawColor(loginInterface,255,255,255,255);
-        SDL_RenderFillRect(loginInterface,&ID);
-        SDL_RenderFillRect(loginInterface,&PW);
-        break;
-    case 1:
-        SDL_SetRenderDrawColor(loginInterface,bufferColor.r,bufferColor.g,bufferColor.b,bufferColor.a);
-        SDL_RenderFillRect(loginInterface,&ID);
-        SDL_SetRenderDrawColor(loginInterface,255,255,255,255);
-        SDL_RenderFillRect(loginInterface,&PW);
-        break;
-    case 2:
-        SDL_SetRenderDrawColor(loginInterface,bufferColor.r,bufferColor.g,bufferColor.b,bufferColor.a);
-        SDL_RenderFillRect(loginInterface,&PW);
-        SDL_SetRenderDrawColor(loginInterface,255,255,255,255);
-        SDL_RenderFillRect(loginInterface,&ID);
-        break;
-    }
-    SDL_RenderPresent(loginInterface);
-}
-char** login(SDL_Window *window)
-{
+    // Initialization of assets
+    SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_Surface * interface = SDL_LoadBMP("Assets/images/HyperPlanningLogIn.bmp");
+    SDL_Texture * textureLog = SDL_CreateTextureFromSurface(renderer, interface);
+    SDL_Surface *surfaceBuffer;
+    SDL_Texture *textureBuffer;
+    SDL_Color fontColor= {0,0,0,255};
+    SDL_Color bufferColor= {120,120,120,60};
+    SDL_DisplayMode DM;
+    SDL_Rect posID,posPW,posLOG;
+    SDL_Event event,event1;
+    string ID,PW,hiddenPW;
+    int mouseX,mouseY,mouse;
+
+    SDL_GetWindowSize(window,&DM.w,&DM.h);
+
+    // Setting positions according to the screen resolution
+
+    posID.x=posPW.x=posLOG.x=683*DM.w/1920;
+    posID.y=392*DM.h/1080;
+    posPW.y=posID.y+122*DM.h/1080;
+    posLOG.y=posPW.y+80*DM.h/1080;
+    posID.w=posPW.w=posLOG.w=556*DM.w/1920;
+    posID.h=posPW.h=55*DM.h/1080;
+    posLOG.h=111*DM.h/1080;
+
+    SDL_RenderCopy(renderer, textureLog, NULL, NULL);
+    SDL_RenderPresent(renderer);
+
+
     if(TTF_Init()<0)
     {
         cout<<"ERROR DURING TTF_INIT ERRORCODE "<<TTF_GetError()<<endl;
         exit(-1);
     }
 
-    TTF_Font *font = TTF_OpenFont("Assets/fonts/AGENCYR.TTF",20);
+    TTF_Font *font = TTF_OpenFont("Assets/fonts/AGENCYR.TTF",25);
 
     if(!font)
     {
@@ -45,314 +52,151 @@ char** login(SDL_Window *window)
         exit(-1);
     }
 
-    SDL_Surface *textSurface;
-    SDL_Texture *textTexture;
 
-    SDL_Color fontColor= {0,0,0,255};
-    SDL_Color bufferColor= {120,120,120,60};
-    SDL_Renderer *loginInterface = SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-    SDL_Rect ID;
-    SDL_Rect PW;
-    SDL_Rect textID;
-    SDL_Rect textPW;
-
-    string bufferID,bufferPW;
-    SDL_DisplayMode DM;
-    SDL_GetWindowSize(window,&DM.w,&DM.h);
-
-
-    int mouseX,mouseY,mouse;
-    bool isRunning=true;
-
-
-    ID.h= PW.h= textID.h= textPW.h=20;
-    ID.w= PW.w= textID.w= textPW.w=200;
-    ID.x= PW.x= textID.x=textPW.x=DM.w/2-ID.w/2;
-    ID.y= PW.y=DM.h/2-ID.h/2-(ID.h+10);
-
-    PW.y+=ID.h+10;
-
-    textID.y=ID.y-3;
-    textPW.y=PW.y-3;
-
-
-    drawLoginInterface(window,loginInterface,ID,PW,0,bufferColor);
-
-
-    SDL_Event event;
-    SDL_Event event2;
-
-    while(SDL_WaitEvent(&event)==1)
+    while(1)
     {
+        SDL_WaitEvent(&event);
+
         switch(event.type)
         {
+        case SDL_QUIT:
+
+            TTF_CloseFont(font);
+            TTF_Quit();
+            SDL_DestroyTexture(textureLog);
+            /*SDL_DestroyTexture(textureBuffer);
+            SDL_FreeSurface(interface);
+            SDL_FreeSurface(surfaceBuffer);
+            SDL_DestroyRenderer(renderer);*/
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            exit(0);
+            // condition d'arret ?
+            break;
         case SDL_MOUSEMOTION:
             SDL_GetMouseState(&mouseX,&mouseY);
-            if(mouseX>=ID.x && mouseX<=ID.x+ID.w && mouseY>=ID.y && mouseY<= ID.y+ID.h)
-            {
+            if(posID.x<=mouseX && mouseX<=posID.x+posID.w && posID.y<=mouseY && mouseY<=posID.y+posID.h)
                 mouse=1;
-            }
+            else if(posPW.x<=mouseX && mouseX<=posPW.x+posPW.w && posPW.y<=mouseY && mouseY<=posPW.y+posPW.h)
+                mouse=2;
+            else if(posLOG.x<=mouseX && mouseX<=posLOG.x+posLOG.w && posLOG.y<=mouseY && mouseY<=posLOG.y+posLOG.h)
+                mouse=3;
             else
-            {
-                if(mouseX>=PW.x && mouseX<=PW.x+PW.w && mouseY>=PW.y && mouseY<= PW.y+PW.h)
-                {
-
-                    mouse=2;
-                }
-                else
-                {
-                    mouse=0;
-                }
-            }
-            drawLoginInterface(window, loginInterface,ID,PW,mouse,bufferColor);
-            if(bufferID.length()>0)
-            {
-                textSurface = TTF_RenderText_Solid(font,bufferID.c_str(),fontColor);
-                textTexture= SDL_CreateTextureFromSurface(loginInterface,textSurface);
-                SDL_QueryTexture(textTexture,NULL,NULL,&textID.w,&textID.h);
-                SDL_RenderCopy(loginInterface,textTexture,NULL,&textID);
-                SDL_RenderPresent(loginInterface);
-            }
-            if(bufferPW.length()>0)
-            {
-                textSurface = TTF_RenderText_Solid(font,bufferPW.c_str(),fontColor);
-                textTexture= SDL_CreateTextureFromSurface(loginInterface,textSurface);
-                SDL_QueryTexture(textTexture,NULL,NULL,&textPW.w,&textPW.h);
-                SDL_RenderCopy(loginInterface,textTexture,NULL,&textPW);
-                SDL_RenderPresent(loginInterface);
-            }
-            break;
-        case SDL_QUIT:
-            SDL_DestroyRenderer(loginInterface);
-            SDL_Quit();
-            isRunning=false;
+                mouse=0;
             break;
         case SDL_MOUSEBUTTONDOWN:
-            switch(mouse)
+            if(mouse==1)
             {
-            case 1:
                 SDL_StartTextInput();
-                isRunning=true;
-                while(isRunning)
+                do
                 {
-                    fflush(stdin);
-                    SDL_WaitEvent(&event2);
-
-
-                    if(event2.key.keysym.sym != SDLK_RETURN && (event2.type==SDL_TEXTINPUT || event2.type==SDL_KEYDOWN))
+                    SDL_WaitEvent(&event1);
+                    if(ID.length()>0 && event1.key.keysym.sym==SDLK_BACKSPACE && event1.type== SDL_KEYDOWN && event1.type!=SDL_QUIT)
                     {
-
-
-                        if(event2.type==SDL_KEYDOWN && event2.key.keysym.sym==SDLK_BACKSPACE && bufferID.length()>0)
-                        {
-                            bufferID=bufferID.substr(0,bufferID.length()-1);
-                        }
-                        else if(event2.type==SDL_TEXTINPUT)
-                        {
-                            bufferID+=event2.text.text;
-                        }
-
-                        drawLoginInterface(window, loginInterface,ID,PW,mouse,bufferColor);
-
-                        textSurface = TTF_RenderText_Solid(font,bufferID.c_str(),fontColor);
-                        textTexture= SDL_CreateTextureFromSurface(loginInterface,textSurface);
-                        SDL_QueryTexture(textTexture,NULL,NULL,&textID.w,&textID.h);
-                        SDL_RenderCopy(loginInterface,textTexture,NULL,&textID);
-
-
-                        textSurface = TTF_RenderText_Solid(font,bufferPW.c_str(),fontColor);
-                        textTexture= SDL_CreateTextureFromSurface(loginInterface,textSurface);
-                        SDL_QueryTexture(textTexture,NULL,NULL,&textPW.w,&textPW.h);
-                        SDL_RenderCopy(loginInterface,textTexture,NULL,&textPW);
-                        SDL_RenderPresent(loginInterface);
-
+                        ID=ID.substr(0,ID.length()-1);
                     }
-                    else
+                    else if(event1.type==SDL_TEXTINPUT && event1.key.keysym.sym!=SDLK_RETURN && event1.key.keysym.sym!=SDLK_KP_ENTER && event1.type!=SDL_QUIT)
                     {
-                        if(event2.key.keysym.sym==SDLK_RETURN)
-                        {
-                            isRunning=false;
-                        }
-                        else
-                        {
-                            if(event2.type==SDL_QUIT)
-                            {
-                                SDL_DestroyRenderer(loginInterface);
-                                SDL_Quit();
-                                isRunning=false;
-                                exit(0);
-                            }
-                            else if(event2.type == SDL_MOUSEBUTTONDOWN)
-                            {
-                                SDL_GetMouseState(&mouseX,&mouseY);
-                                if(mouseX>=ID.x && mouseX<=ID.x+ID.w && mouseY>=ID.y && mouseY<= ID.y+ID.h)
-                                {
-                                    mouse=1;
-                                }
-                                else
-                                {
-                                    if(mouseX>=PW.x && mouseX<=PW.x+PW.w && mouseY>=PW.y && mouseY<= PW.y+PW.h)
-                                    {
-
-                                        mouse=2;
-                                    }
-                                    else
-                                    {
-                                        mouse=0;
-                                    }
-                                }
-
-                                if(mouse!=1)
-                                {
-                                    isRunning=false;
-
-                                }
-                            }
-
-
-                        }
-
+                        ID+=event1.text.text;
+                    }
+                    SDL_RenderCopy(renderer, textureLog, NULL, NULL);
+                    surfaceBuffer = TTF_RenderText_Solid(font,ID.c_str(),fontColor);
+                    textureBuffer= SDL_CreateTextureFromSurface(renderer,surfaceBuffer);
+                    SDL_QueryTexture(textureBuffer,NULL,NULL,&posID.w,&posID.h);
+                    SDL_RenderCopy(renderer,textureBuffer,NULL,&posID);
+                    surfaceBuffer = TTF_RenderText_Solid(font,hiddenPW.c_str(),fontColor);
+                    textureBuffer= SDL_CreateTextureFromSurface(renderer,surfaceBuffer);
+                    SDL_QueryTexture(textureBuffer,NULL,NULL,&posPW.w,&posPW.h);
+                    SDL_RenderCopy(renderer,textureBuffer,NULL,&posPW);
+                    SDL_RenderPresent(renderer);
+                    if(event1.type==SDL_QUIT)
+                    {
+                        TTF_CloseFont(font);
+                        TTF_Quit();
+                        SDL_DestroyTexture(textureLog);
+                        SDL_DestroyTexture(textureBuffer);
+                        SDL_FreeSurface(interface);
+                        SDL_FreeSurface(surfaceBuffer);
+                        SDL_DestroyRenderer(renderer);
+                        SDL_DestroyWindow(window);
+                        SDL_Quit();
+                        exit(0);
                     }
                 }
+                while(event1.key.keysym.sym!=SDLK_RETURN && event1.key.keysym.sym!=SDLK_KP_ENTER);
+                cout<<"Quit1"<<endl;
                 SDL_StopTextInput();
-
-                break;
-            case 2:
-                SDL_StartTextInput();
-                isRunning=true;
-                while(isRunning)
-                {
-                    fflush(stdin);
-                    SDL_WaitEvent(&event2);
-
-
-                    if(event2.key.keysym.sym != SDLK_RETURN && (event2.type==SDL_TEXTINPUT || event2.type==SDL_KEYDOWN))
-                    {
-
-                        if(event2.type==SDL_KEYDOWN && event2.key.keysym.sym==SDLK_BACKSPACE && bufferPW.length()>0)
-                        {
-                            bufferPW=bufferPW.substr(0,bufferPW.length()-1);
-                        }
-                        else if(event2.type==SDL_TEXTINPUT)
-                        {
-                            bufferPW+=event2.text.text;
-                        }
-
-                        drawLoginInterface(window, loginInterface,ID,PW,mouse,bufferColor);
-
-                        textSurface = TTF_RenderText_Solid(font,bufferPW.c_str(),fontColor);
-                        textTexture= SDL_CreateTextureFromSurface(loginInterface,textSurface);
-                        SDL_QueryTexture(textTexture,NULL,NULL,&textPW.w,&textPW.h);
-                        SDL_RenderCopy(loginInterface,textTexture,NULL,&textPW);
-
-
-                        textSurface = TTF_RenderText_Solid(font,bufferID.c_str(),fontColor);
-                        textTexture= SDL_CreateTextureFromSurface(loginInterface,textSurface);
-                        SDL_QueryTexture(textTexture,NULL,NULL,&textID.w,&textID.h);
-                        SDL_RenderCopy(loginInterface,textTexture,NULL,&textID);
-                        SDL_RenderPresent(loginInterface);
-
-                    }
-                    else
-                    {
-                        if(event2.key.keysym.sym==SDLK_RETURN)
-                        {
-                            isRunning=false;
-                        }
-                        else
-                        {
-                            if(event2.type==SDL_QUIT)
-                            {
-                                SDL_DestroyRenderer(loginInterface);
-                                SDL_Quit();
-                                isRunning=false;
-                                exit(0);
-                            }
-                            else if(event2.type == SDL_MOUSEBUTTONDOWN)
-                            {
-                                SDL_GetMouseState(&mouseX,&mouseY);
-                                if(mouseX>=ID.x && mouseX<=ID.x+ID.w && mouseY>=ID.y && mouseY<= ID.y+ID.h)
-                                {
-                                    mouse=1;
-                                }
-                                else
-                                {
-                                    if(mouseX>=PW.x && mouseX<=PW.x+PW.w && mouseY>=PW.y && mouseY<= PW.y+PW.h)
-                                    {
-
-                                        mouse=2;
-                                    }
-                                    else
-                                    {
-                                        mouse=0;
-                                    }
-                                }
-
-                                if(mouse!=2)
-                                {
-                                    isRunning=false;
-
-                                }
-                            }
-                        }
-
-                    }
-                }
-                SDL_StopTextInput();
-
-                break;
             }
-            break;
+            else if(mouse==2)
+            {
+                SDL_StartTextInput();
+                do
+                {
+                    SDL_WaitEvent(&event1);
+                    if(PW.length()>0 && event1.key.keysym.sym==SDLK_BACKSPACE && event1.type== SDL_KEYDOWN && event1.type!=SDL_QUIT)
+                    {
+                        PW=PW.substr(0,PW.length()-1);
+                        hiddenPW=hiddenPW.substr(0,hiddenPW.length()-1);
+                    }
+                    else if(event1.type==SDL_TEXTINPUT && event1.key.keysym.sym!=SDLK_RETURN && event1.key.keysym.sym!=SDLK_KP_ENTER && event1.type!=SDL_QUIT)
+                    {
+                        PW+=event1.text.text;
+                        hiddenPW+="*";
+                    }
+                    SDL_RenderCopy(renderer, textureLog, NULL, NULL);
+                    surfaceBuffer = TTF_RenderText_Solid(font,ID.c_str(),fontColor);
+                    textureBuffer= SDL_CreateTextureFromSurface(renderer,surfaceBuffer);
+                    SDL_QueryTexture(textureBuffer,NULL,NULL,&posID.w,&posID.h);
+                    SDL_RenderCopy(renderer,textureBuffer,NULL,&posID);
+                    surfaceBuffer = TTF_RenderText_Solid(font,hiddenPW.c_str(),fontColor);
+                    textureBuffer= SDL_CreateTextureFromSurface(renderer,surfaceBuffer);
+                    SDL_QueryTexture(textureBuffer,NULL,NULL,&posPW.w,&posPW.h);
+                    SDL_RenderCopy(renderer,textureBuffer,NULL,&posPW);
+                    SDL_RenderPresent(renderer);
+
+                    if(event1.type==SDL_QUIT)
+                    {
+                        TTF_CloseFont(font);
+                        TTF_Quit();
+                        SDL_DestroyTexture(textureLog);
+                        SDL_DestroyTexture(textureBuffer);
+                        SDL_FreeSurface(interface);
+                        SDL_FreeSurface(surfaceBuffer);
+                        SDL_DestroyRenderer(renderer);
+                        SDL_DestroyWindow(window);
+                        SDL_Quit();
+                        exit(0);
+                    }
+                }
+                while(event1.key.keysym.sym!=SDLK_RETURN && event1.key.keysym.sym!=SDLK_KP_ENTER);
+                cout<<"Quit2"<<endl;
+                SDL_StopTextInput();
+            }
+            else if(mouse==3)
+                //Check(ID,MDP)
+                break;
         }
-
-
     }
+
+
+
+
+    TTF_CloseFont(font);
     TTF_Quit();
-    SDL_FreeSurface(textSurface);
-    SDL_DestroyTexture(textTexture);
-    SDL_DestroyRenderer(loginInterface);
-    SDL_Quit();
+    SDL_DestroyTexture(textureBuffer);
+    SDL_DestroyTexture(textureLog);
+    SDL_FreeSurface(interface);
+    SDL_FreeSurface(surfaceBuffer);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
 }
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Window *window=SDL_CreateWindow("HyperPlanning",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,640,480,SDL_WINDOW_RESIZABLE);
-    //SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP );
-
-
-    /*SDL_Event event;
-    string buffer;
-    bool isRunning=true;
-    while(SDL_PollEvent(&event)==1 || isRunning)
-    {
-        switch(event.type)
-        {
-        case SDL_QUIT:
-        case SDL_WINDOWEVENT: // Événement de la fenêtre
-            if ( event.window.event == SDL_WINDOWEVENT_CLOSE ) // Fermeture de la fenêtre
-            {
-                SDL_DestroyWindow(window);
-                SDL_Quit();
-                isRunning
-            }
-            break;
-        case SDL_KEYDOWN:
-            SDL_StartTextInput();
-            buffer+=event.key.keysym.sym;
-            system("cls");
-            cout<<buffer<<endl;
-        }
-    }*/
-    login(window);
-    //SDL_Delay(3000);  // Pause execution for 3000 milliseconds, for example
-
-    // Close and destroy the window
-
-
-    // Clean up
-    //SDL_Quit();
+    SDL_Window *window=SDL_CreateWindow("HyperPlanning",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1200,650,SDL_WINDOW_RESIZABLE);
+    newLog(window);
+    SDL_Quit();
 
     return 0;
 }
