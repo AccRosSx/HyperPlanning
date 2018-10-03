@@ -1,0 +1,236 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf600
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 -- phpMyAdmin SQL Dump\
+-- version 4.8.3\
+-- https://www.phpmyadmin.net/\
+--\
+-- H\'f4te : localhost:8889\
+-- G\'e9n\'e9r\'e9 le :  mer. 03 oct. 2018 \'e0 12:30\
+-- Version du serveur :  5.7.23\
+-- Version de PHP :  7.2.8\
+\
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";\
+SET time_zone = "+00:00";\
+\
+--\
+-- Base de donn\'e9es :  `DB_nico`\
+--\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `Calendrier`\
+--\
+\
+CREATE TABLE `Calendrier` (\
+  `dateJour` date NOT NULL\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `formateurs`\
+--\
+\
+CREATE TABLE `formateurs` (\
+  `idFormateur` int(11) NOT NULL,\
+  `nom` varchar(20) DEFAULT NULL,\
+  `prenom` varchar(20) DEFAULT NULL,\
+  `idMatiere` int(11) NOT NULL\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `groupes`\
+--\
+\
+CREATE TABLE `groupes` (\
+  `idGroupe` int(11) NOT NULL,\
+  `idFormateur` int(11) NOT NULL\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `matieres`\
+--\
+\
+CREATE TABLE `matieres` (\
+  `idMatiere` int(11) NOT NULL,\
+  `nom` varchar(30) DEFAULT NULL,\
+  `volumeHoraire` int(11) DEFAULT NULL,\
+  `type` enum('TP','TD','Amphi') DEFAULT NULL,\
+  `dureeExamen` enum('0','1','2') DEFAULT NULL,\
+  `dateRattrapage` date DEFAULT NULL\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `Reservations`\
+--\
+\
+CREATE TABLE `Reservations` (\
+  `idReservation` int(11) NOT NULL,\
+  `idSalle` int(11) NOT NULL,\
+  `idGroupe` int(11) NOT NULL,\
+  `hDebut` int(11) DEFAULT NULL,\
+  `hFin` int(11) DEFAULT NULL,\
+  `dateJour` date NOT NULL\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `salles`\
+--\
+\
+CREATE TABLE `salles` (\
+  `idSalle` int(11) NOT NULL,\
+  `type` enum('TP','TD','Amphi') DEFAULT NULL\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+-- --------------------------------------------------------\
+\
+--\
+-- Structure de la table `stagiaires`\
+--\
+\
+CREATE TABLE `stagiaires` (\
+  `idMatricule` int(11) NOT NULL,\
+  `nom` varchar(30) DEFAULT NULL,\
+  `prenom` varchar(30) DEFAULT NULL,\
+  `dateNaissance` date DEFAULT NULL,\
+  `dateTs` datetime DEFAULT CURRENT_TIMESTAMP,\
+  `dateInscription` date GENERATED ALWAYS AS (cast(`dateTs` as date)) VIRTUAL,\
+  `sexe` enum('H','F') DEFAULT NULL,\
+  `numeroRue` varchar(5) DEFAULT NULL,\
+  `nomRue` varchar(50) DEFAULT NULL,\
+  `codePostal` varchar(10) DEFAULT NULL,\
+  `nomVille` varchar(30) DEFAULT NULL,\
+  `numeroDom` char(10) DEFAULT NULL,\
+  `numeroMob` char(10) DEFAULT NULL,\
+  `idGroupe` int(11) DEFAULT '0'\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+\
+--\
+-- Index pour les tables d\'e9charg\'e9es\
+--\
+\
+--\
+-- Index pour la table `Calendrier`\
+--\
+ALTER TABLE `Calendrier`\
+  ADD PRIMARY KEY (`dateJour`);\
+\
+--\
+-- Index pour la table `formateurs`\
+--\
+ALTER TABLE `formateurs`\
+  ADD PRIMARY KEY (`idFormateur`),\
+  ADD KEY `fk_idMatiere` (`idMatiere`);\
+\
+--\
+-- Index pour la table `groupes`\
+--\
+ALTER TABLE `groupes`\
+  ADD PRIMARY KEY (`idGroupe`),\
+  ADD KEY `fk_idFormateur` (`idFormateur`);\
+\
+--\
+-- Index pour la table `matieres`\
+--\
+ALTER TABLE `matieres`\
+  ADD PRIMARY KEY (`idMatiere`);\
+\
+--\
+-- Index pour la table `Reservations`\
+--\
+ALTER TABLE `Reservations`\
+  ADD PRIMARY KEY (`idReservation`),\
+  ADD KEY `idGroupe` (`idGroupe`),\
+  ADD KEY `dateJour` (`dateJour`),\
+  ADD KEY `idSalle` (`idSalle`);\
+\
+--\
+-- Index pour la table `salles`\
+--\
+ALTER TABLE `salles`\
+  ADD PRIMARY KEY (`idSalle`);\
+\
+--\
+-- Index pour la table `stagiaires`\
+--\
+ALTER TABLE `stagiaires`\
+  ADD PRIMARY KEY (`idMatricule`);\
+\
+--\
+-- AUTO_INCREMENT pour les tables d\'e9charg\'e9es\
+--\
+\
+--\
+-- AUTO_INCREMENT pour la table `formateurs`\
+--\
+ALTER TABLE `formateurs`\
+  MODIFY `idFormateur` int(11) NOT NULL AUTO_INCREMENT;\
+\
+--\
+-- AUTO_INCREMENT pour la table `groupes`\
+--\
+ALTER TABLE `groupes`\
+  MODIFY `idGroupe` int(11) NOT NULL AUTO_INCREMENT;\
+\
+--\
+-- AUTO_INCREMENT pour la table `matieres`\
+--\
+ALTER TABLE `matieres`\
+  MODIFY `idMatiere` int(11) NOT NULL AUTO_INCREMENT;\
+\
+--\
+-- AUTO_INCREMENT pour la table `Reservations`\
+--\
+ALTER TABLE `Reservations`\
+  MODIFY `idReservation` int(11) NOT NULL AUTO_INCREMENT;\
+\
+--\
+-- AUTO_INCREMENT pour la table `salles`\
+--\
+ALTER TABLE `salles`\
+  MODIFY `idSalle` int(11) NOT NULL AUTO_INCREMENT;\
+\
+--\
+-- AUTO_INCREMENT pour la table `stagiaires`\
+--\
+ALTER TABLE `stagiaires`\
+  MODIFY `idMatricule` int(11) NOT NULL AUTO_INCREMENT;\
+\
+--\
+-- Contraintes pour les tables d\'e9charg\'e9es\
+--\
+\
+--\
+-- Contraintes pour la table `formateurs`\
+--\
+ALTER TABLE `formateurs`\
+  ADD CONSTRAINT `fk_idMatiere` FOREIGN KEY (`idMatiere`) REFERENCES `matieres` (`idMatiere`);\
+\
+--\
+-- Contraintes pour la table `groupes`\
+--\
+ALTER TABLE `groupes`\
+  ADD CONSTRAINT `fk_idFormateur` FOREIGN KEY (`idFormateur`) REFERENCES `formateurs` (`idFormateur`);\
+\
+--\
+-- Contraintes pour la table `Reservations`\
+--\
+ALTER TABLE `Reservations`\
+  ADD CONSTRAINT `dateJour` FOREIGN KEY (`dateJour`) REFERENCES `Calendrier` (`dateJour`),\
+  ADD CONSTRAINT `idGroupe` FOREIGN KEY (`idGroupe`) REFERENCES `groupes` (`idGroupe`),\
+  ADD CONSTRAINT `idSalle` FOREIGN KEY (`idSalle`) REFERENCES `salles` (`idSalle`);\
+BDD}
